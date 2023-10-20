@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Import vars from os-release file
+.  /etc/os-release
+
 echo
 
 if [[ $EUID -ne 0 ]]; then
@@ -16,15 +19,13 @@ function welcome {
 
 if ! { [ "$1" == "-h" ] || [ "$1" == "--help" ]; }
 then
-  currentDirectory=$(basename "$PWD")
-
-  if [ "$currentDirectory" != "libki-server" ]
+  if [ ! -f ./lib/Libki.pm ]
   then
     welcome
 
     echo "This utility can only be run from your libki-server directory."
     echo
-    echo "Use --help to see alternatives."
+    echo "Use --help to see script options."
     echo
     exit 1
   fi
@@ -35,7 +36,7 @@ if [ $# -eq 0 ]; then
 
   echo "No arguments supplied."
   echo
-  echo "Use --help to see the alternatives."
+  echo "Use --help to see see script options."
   echo
   exit 1
 fi
@@ -59,6 +60,7 @@ do
       echo
       exit 0
       ;;
+
     --cleanup | -c)
       welcome
 
@@ -71,6 +73,7 @@ do
 
       exit 0
       ;;
+
     --generate | -g)
       welcome
 
@@ -87,6 +90,7 @@ do
 
       exit 0
       ;;
+
     --update | -u)
       welcome
 
@@ -99,12 +103,21 @@ do
         exit 1
       fi
 
-      apt=$( dpkg-query -W gettext 2>&1 )
-
-      if [[ $apt == *"dpkg-query"* ]]
+      if [ "debian" == $ID ]
       then
-        apt update
-        apt install gettext -y
+          apt=$( dpkg-query -W gettext 2>&1 )
+
+          if [[ $apt == *"dpkg-query"* ]]
+          then
+            apt update
+            apt install gettext -y
+          fi
+      elif [ "alpine" == $ID ]
+      then
+        apk update 2>&1
+        apk add gettext 2>&1
+      else
+          echo "Linux distrobution $NAME is not supported, please ensure that gettext is intalled."
       fi
 
       timestamp=$(date +"%y%m%d_%H:%M")
