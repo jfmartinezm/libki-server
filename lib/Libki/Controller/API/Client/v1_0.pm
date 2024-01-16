@@ -11,6 +11,7 @@ use Libki::Hours qw( minutes_until_closing );
 use Libki::Utils::Printing qw( create_print_job_and_file );
 use Libki::Utils::User qw( create_guest );
 use Libki::Clients qw( get_wol_mac_addresses );
+use Libki::Notify qw( notify_login_via_http );
 
 use DateTime::Format::MySQL;
 use DateTime;
@@ -470,6 +471,9 @@ sub index : Path : Args(0) {
                                         ),
                                     }
                                 );
+
+                                my $ret =
+                                    Libki::Notify::notify_login_via_http( $c, $user, $password, $client );
                             }
                             else {
                                 $c->stash( error => $result{'error'} );
