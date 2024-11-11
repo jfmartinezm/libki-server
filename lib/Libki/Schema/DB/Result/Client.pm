@@ -68,6 +68,12 @@ __PACKAGE__->table("clients");
   is_nullable: 0
   size: 191
 
+=head2 library
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 191
+
 =head2 location
 
   data_type: 'varchar'
@@ -120,6 +126,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "varchar", is_nullable => 0, size => 191 },
+  "library",
+  { data_type => "varchar", is_nullable => 1, size => 191 },
   "location",
   { data_type => "varchar", is_nullable => 1, size => 191 },
   "status",
@@ -236,8 +244,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2023-07-17 07:52:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ti/ZkUiszWr7QBlvpKEe6Q
+# Created by DBIx::Class::Schema::Loader v0.07052 @ 2024-11-11 19:23:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2S+J0x3kohBw/TSjU/NwdA
 
 =head2 can_user_use
 

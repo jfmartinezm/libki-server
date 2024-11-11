@@ -1,4 +1,4 @@
--- MariaDB dump 10.19  Distrib 10.5.19-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.5.21-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: libki-mariadb    Database: libki
 -- ------------------------------------------------------
@@ -64,6 +64,7 @@ CREATE TABLE `clients` (
   `instance` varchar(32) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
+  `library` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `location` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `status` varchar(191) COLLATE utf8_unicode_ci DEFAULT 'online',
   `type` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -205,6 +206,7 @@ CREATE TABLE `print_files` (
   `pages` int(4) DEFAULT NULL,
   `client_id` int(11) DEFAULT NULL,
   `client_name` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
+  `client_library` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `client_location` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `client_type` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
@@ -336,6 +338,7 @@ CREATE TABLE `statistics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `client_name` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `client_library` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `client_location` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `client_type` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `action` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -378,6 +381,7 @@ CREATE TABLE `users` (
   `username` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
   `status` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
+  `library` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `notes` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `is_troublemaker` enum('Yes','No') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'No',
   `troublemaker_until` datetime DEFAULT NULL,
@@ -404,4 +408,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-17  7:52:06
+-- Dump completed on 2024-11-11 19:23:31

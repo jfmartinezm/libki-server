@@ -95,6 +95,12 @@ __PACKAGE__->table("print_files");
   is_nullable: 0
   size: 191
 
+=head2 client_library
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 191
+
 =head2 client_location
 
   data_type: 'varchar'
@@ -152,6 +158,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "client_name",
   { data_type => "varchar", is_nullable => 0, size => 191 },
+  "client_library",
+  { data_type => "varchar", is_nullable => 1, size => 191 },
   "client_location",
   { data_type => "varchar", is_nullable => 1, size => 191 },
   "client_type",
@@ -246,8 +254,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2023-07-11 07:35:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9IRAjpODFDD7mIKVnM/Jgg
+# Created by DBIx::Class::Schema::Loader v0.07052 @ 2024-11-11 19:23:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OFiPsw2/khQ7RefsV3hojw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
