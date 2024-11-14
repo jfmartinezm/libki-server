@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN `location` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL AFTER `status`;
