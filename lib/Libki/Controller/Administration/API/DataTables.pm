@@ -206,6 +206,23 @@ sub clients : Local Args(0) {
         $filter->{'location'} = $c->request->param("location_filter");
     }
 
+    my $loggedUsername = $c->user->username;
+    my @loggedUsers = $c->model('DB::User')->search(
+            { 
+            instance => $instance,
+            username => $loggedUsername
+            } 
+        );
+    foreach my $u (@loggedUsers) {
+        my $loggedUserLibrary = $u->library;
+        if ( $loggedUserLibrary ) {
+            $c->log->debug( "Logged user $loggedUsername has library $loggedUserLibrary assigned");
+            $filter->{'me.library'} = $loggedUserLibrary;
+        }
+        
+    }
+    
+
     # Sorting options
     my @sorting;
     for ( my $i = 0 ; $i < $c->request->param('iSortingCols') ; $i++ ) {
