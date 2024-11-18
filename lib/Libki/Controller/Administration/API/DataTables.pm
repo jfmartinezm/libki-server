@@ -175,7 +175,8 @@ sub clients : Local Args(0) {
     # Get settings
     my $userCategories = $c->setting('UserCategories');
     my $showFirstLastNames = $c->setting('ShowFirstLastNames');
-    my $filterClientsByAdminLocation = $c->setting('filterClientsByAdminLocation');
+    my $filterClientsByAdminLocation = $c->setting('FilterClientsByAdminLocation');
+    my $filterClientsByAdminLocationWithWildcards = $c->setting('FilterClientsByAdminLocationWithWildcards');
 
     # We need to map the table columns to field names for ordering
     my @columns =
@@ -203,6 +204,8 @@ sub clients : Local Args(0) {
         ];
     }
 
+    #TODO: Solve conflict between location filter from URL query and admin user location
+    # As implemented here, if FilterClientsByAdminLocation is enabled, it has precedence over the URL query
     if ( $c->request->param("location_filter") ) {
         $filter->{'me.location'} = $c->request->param("location_filter");
     }
@@ -222,7 +225,15 @@ sub clients : Local Args(0) {
             my $loggedUserLocation = $u->location;
             if ( $loggedUserLocation ) {
                 $c->log->debug( "Logged user $loggedUsername has location $loggedUserLocation");
-                $filter->{'me.location'} = $loggedUserLocation;
+                if ( $filterClientsByAdminLocationWithWildcards eq '1' ) {
+                    $c->log->debug( "filterClientsByAdminLocation using wildcards");
+                    $loggedUserLocation =~ s/\*/\%/g;
+                    $c->log->debug( "location with replaced wildcards: $loggedUserLocation");
+                    $filter->{'me.location'}{'like'} = $loggedUserLocation;
+                }
+                else {
+                    $filter->{'me.location'} = $loggedUserLocation;
+                }
             }    
         }
     }
