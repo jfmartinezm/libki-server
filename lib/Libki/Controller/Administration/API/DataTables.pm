@@ -175,6 +175,7 @@ sub clients : Local Args(0) {
     # Get settings
     my $userCategories = $c->setting('UserCategories');
     my $showFirstLastNames = $c->setting('ShowFirstLastNames');
+    my $filterUsersByAdminLocation = $c->setting('FilterUsersByAdminLocation');
 
     # We need to map the table columns to field names for ordering
     my @columns =
@@ -206,19 +207,24 @@ sub clients : Local Args(0) {
         $filter->{'location'} = $c->request->param("location_filter");
     }
 
-    my $loggedUsername = $c->user->username;
-    my @loggedUsers = $c->model('DB::User')->search(
-            { 
-            instance => $instance,
-            username => $loggedUsername
-            } 
-        );
-    foreach my $u (@loggedUsers) {
-        my $loggedUserLocation = $u->location;
-        if ( $loggedUserLocation ) {
-            $c->log->debug( "Logged user $loggedUsername has location $loggedUserLocation");
-            $filter->{'me.location'} = $loggedUserLocation;
-        }    
+    if ( $filterUsersByAdminLocation eq '1' ) {
+
+        $c->log->debug( "FilterUsersByAdminLocation enabled");
+
+        my $loggedUsername = $c->user->username;
+        my @loggedUsers = $c->model('DB::User')->search(
+                { 
+                instance => $instance,
+                username => $loggedUsername
+                } 
+            );
+        foreach my $u (@loggedUsers) {
+            my $loggedUserLocation = $u->location;
+            if ( $loggedUserLocation ) {
+                $c->log->debug( "Logged user $loggedUsername has location $loggedUserLocation");
+                $filter->{'me.location'} = $loggedUserLocation;
+            }    
+        }
     }
 
     # Sorting options
