@@ -206,6 +206,21 @@ sub clients : Local Args(0) {
         $filter->{'location'} = $c->request->param("location_filter");
     }
 
+    my $loggedUsername = $c->user->username;
+    my @loggedUsers = $c->model('DB::User')->search(
+            { 
+            instance => $instance,
+            username => $loggedUsername
+            } 
+        );
+    foreach my $u (@loggedUsers) {
+        my $loggedUserLocation = $u->location;
+        if ( $loggedUserLocation ) {
+            $c->log->debug( "Logged user $loggedUsername has location $loggedUserLocation");
+            $filter->{'me.location'} = $loggedUserLocation;
+        }    
+    }
+
     # Sorting options
     my @sorting;
     for ( my $i = 0 ; $i < $c->request->param('iSortingCols') ; $i++ ) {
