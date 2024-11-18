@@ -1,4 +1,4 @@
--- MariaDB dump 10.19  Distrib 10.5.19-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.5.21-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: libki-mariadb    Database: libki
 -- ------------------------------------------------------
@@ -378,6 +378,7 @@ CREATE TABLE `users` (
   `username` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
   `password` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
   `status` varchar(191) COLLATE utf8_unicode_ci NOT NULL,
+  `location` varchar(191) COLLATE utf8_unicode_ci DEFAULT NULL,
   `notes` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `is_troublemaker` enum('Yes','No') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'No',
   `troublemaker_until` datetime DEFAULT NULL,
@@ -404,4 +405,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-17  7:52:06
+-- Dump completed on 2024-11-18 13:20:03

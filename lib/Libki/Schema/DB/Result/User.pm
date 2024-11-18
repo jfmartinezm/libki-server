@@ -80,6 +80,12 @@ __PACKAGE__->table("users");
   is_nullable: 0
   size: 191
 
+=head2 location
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 191
+
 =head2 notes
 
   data_type: 'longtext'
@@ -172,6 +178,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 191 },
   "status",
   { data_type => "varchar", is_nullable => 0, size => 191 },
+  "location",
+  { data_type => "varchar", is_nullable => 1, size => 191 },
   "notes",
   { data_type => "longtext", is_nullable => 1 },
   "is_troublemaker",
@@ -373,8 +381,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-04-27 09:23:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OEcNHEQWgqAPGQoP1hKlUA
+# Created by DBIx::Class::Schema::Loader v0.07052 @ 2024-11-18 13:20:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ljPSqnG5WAxg1KR3PRDFNw
 
 __PACKAGE__->add_columns(
     'password' => {

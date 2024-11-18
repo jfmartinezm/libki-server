@@ -1,4 +1,4 @@
--- MariaDB dump 10.19  Distrib 10.5.19-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.5.21-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: libki-mariadb    Database: libki
 -- ------------------------------------------------------
@@ -177,7 +177,7 @@ INSERT INTO `settings` VALUES ('','ReservationTimeout','15');
 INSERT INTO `settings` VALUES ('','ShowFirstLastNames','1');
 INSERT INTO `settings` VALUES ('','ThirdPartyURL','');
 INSERT INTO `settings` VALUES ('','UserCategories','');
-INSERT INTO `settings` VALUES ('','Version','4.7.6');
+INSERT INTO `settings` VALUES ('','Version','4.7.8');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -216,4 +216,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-17  7:52:06
+-- Dump completed on 2024-11-18 13:20:03
