@@ -49,6 +49,7 @@ sub get : Local : Args(1) {
             category           => $user->category,
             minutes            => $user->minutes($c),
             status             => $user->status,
+            location           => $user->location,
             notes              => $user->notes,
             funds              => $user->funds,
             is_troublemaker    => $user->is_troublemaker,
@@ -76,6 +77,7 @@ sub create : Local : Args(0) {
     my $firstname = $params->{firstname};
     my $lastname  = $params->{lastname};
     my $category  = $params->{category};
+    my $location  = $params->{location};
     my $password  = $params->{password};
     my $minutes   = $params->{minutes} || undef;
 
@@ -90,6 +92,7 @@ sub create : Local : Args(0) {
             firstname       => $firstname,
             lastname        => $lastname,
             category        => $category,
+            location        => $location,
             password        => $password,
             status          => 'enabled',
             created_on      => $now,
@@ -224,6 +227,7 @@ sub update : Local : Args(0) {
     my $firstname = $c->request->params->{firstname};
     my $lastname  = $c->request->params->{lastname};
     my $category  = $c->request->params->{category};
+    my $location  = $c->request->params->{location};
     my $minutes   = $c->request->params->{'minutes'};
     my $funds     = $c->request->params->{'funds'};
     my $notes     = $c->request->params->{'notes'};
@@ -249,6 +253,7 @@ sub update : Local : Args(0) {
             firstname  => $firstname,
             lastname   => $lastname,
             category   => $category,
+            location   => $location,
             funds      => $funds,
             notes      => $notes,
             status     => $status,
