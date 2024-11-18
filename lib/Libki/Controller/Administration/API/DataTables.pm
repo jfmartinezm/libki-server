@@ -175,7 +175,7 @@ sub clients : Local Args(0) {
     # Get settings
     my $userCategories = $c->setting('UserCategories');
     my $showFirstLastNames = $c->setting('ShowFirstLastNames');
-    my $filterUsersByAdminLocation = $c->setting('FilterUsersByAdminLocation');
+    my $filterClientsByAdminLocation = $c->setting('filterClientsByAdminLocation');
 
     # We need to map the table columns to field names for ordering
     my @columns =
@@ -204,12 +204,12 @@ sub clients : Local Args(0) {
     }
 
     if ( $c->request->param("location_filter") ) {
-        $filter->{'location'} = $c->request->param("location_filter");
+        $filter->{'me.location'} = $c->request->param("location_filter");
     }
 
-    if ( $filterUsersByAdminLocation eq '1' ) {
+    if ( $filterClientsByAdminLocation eq '1' ) {
 
-        $c->log->debug( "FilterUsersByAdminLocation enabled");
+        $c->log->debug( "filterClientsByAdminLocation enabled");
 
         my $loggedUsername = $c->user->username;
         my @loggedUsers = $c->model('DB::User')->search(
