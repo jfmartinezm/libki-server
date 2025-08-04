@@ -3,7 +3,7 @@ package Libki::Controller::API::Public;
 use Moose;
 use namespace::autoclean;
 
-use Libki::Auth qw(authenticate_user);
+use Libki::Auth;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -131,8 +131,9 @@ sub user_funds : Local : Args(0) {
             );
         } elsif ( $c->request->method eq 'POST' ) {
             my $funds = $c->request->params->{'funds'};
-            $user->funds( $user->funds + $funds );
-            $user->update();
+
+            $user->add_funds($funds);
+
             $c->stash(
                 success => JSON::true,
                 balance => $user->funds,

@@ -1,4 +1,5 @@
 [%- SET public_print_release = c.get_printer_configuration.public_print_release %]
+[%- SET pdf_conversion_service = c.get_printer_configuration.pdf_conversion_service %]
 <div class="container">
     <div class="row">
         <div class="col">
@@ -6,15 +7,31 @@
                 <legend class="">[% c.loc("Upload file to print") %]</legend>
                 [% IF c.req.params.error == "INVALID_FILETYPE" %]
                     <div class="alert alert-danger" role="alert">
-                        [% c.loc('Filetype was invalid, file uploads must be PDF.') %]
+                        [% c.loc('Filetype was invalid; PDFs work best.') %]
                         [% c.loc('If your file is not a PDF, you may use a PDF printer such as <a target="_blank" class="alert-link" href="https://www.cutepdf.com/Products/CutePDF/writer.asp">CutePDF</a>,') %]
                         [% c.loc('or a <a target="_blank" class="alert-link" href="https://www.freepdfconvert.com/">web based PDF converter</a>.') %]
                     </div>
+                [% ELSIF c.req.params.success == "PDF_CONV_SUCCESS" %]
+                    <div class="alert alert-success" role="alert">
+                        [% c.loc('File successfully converted to PDF and ready to print!') %]
+                    </div>
+                [% ELSIF c.req.params.error == "PDF_CONV_ERROR" %]
+                    <div class="alert alert-danger" role="alert">
+                        [% c.loc('Something went wrong with the automatic PDF conversion process.') %]
+                    </div>
                 [% ELSE %]
+                    [% IF pdf_conversion_service %]
+                    <div class="alert alert-warning" role="alert">
+                        [% c.loc('<strong>PDFs work best</strong>; non-PDF printing is currently experimental.  Best of luck!') %]
+                        [% c.loc('Currently supporting: ') %]
+			[% c.get_printer_configuration.pdf_conversion_service.supported_extensions.join(", ") %].
+                    </div>
+                    [% ELSE %]
                     <div class="alert alert-info" role="alert">
                         [% c.loc('If your file is not a PDF, you may use a PDF printer such as <a target="_blank" class="alert-link" href="https://www.cutepdf.com/Products/CutePDF/writer.asp">CutePDF</a>,') %]
                         [% c.loc('or a <a target="_blank" class="alert-link" href="https://www.freepdfconvert.com/">web based PDF converter</a>.') %]
                     </div>
+                    [% END %]
                 [% END %]
                 <form action="[% c.uri_for('upload_print_file') %]" method="post" enctype="multipart/form-data">
                     <div class="form-group">
@@ -23,7 +40,7 @@
                                 <span class="input-group-text" id="inputGroupFileAddon01">[% c.loc("Upload") %]</span>
                             </div>
                             <div class="custom-file">
-                                <input type="file" accept="application/pdf" class="form-control custom-file-input" name="print_file" id="print_file"
+                                <input type="file" accept="application/pdf[% IF pdf_conversion_service %],.[% c.get_printer_configuration.pdf_conversion_service.supported_extensions.join(",.") %][% END %]" class="form-control custom-file-input" name="print_file" id="print_file"
                                     aria-describedby="inputGroupFileAddon01" required/>
                                 <label class="custom-file-label" for="inputGroupFile01">[% c.loc("Choose file") %]</label>
                             </div>
@@ -42,7 +59,7 @@
                         [% END %]
                     </div>
 
-                    <button type="submit" class="btn btn-primary"><i class="fa fa-file-upload"></i> [% c.loc("Upload") %]</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> [% c.loc("Upload") %]</button>
                 </form>
             </fieldset>
         </div>
@@ -50,207 +67,215 @@
 
     <p/>
 
-    <div class="container">
+    <div>
         <h4>Funds available for printing: <span id="user-funds">0</span></h4>
         <span id="print-button-warning-text" class="form-text text-muted">
             [% c.loc('If enough funds are available, printing will start immediately when the "Print" button is clicked.') %]
         </span>
         <table id="print-table" cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered">
             <thead>
-            <th>[% c.loc("Type") %]</th>
-            <th>[% c.loc("Status") %]</th>
-            <th>[% c.loc("Copies") %]</th>
-            <th>[% c.loc("Pages") %]</th>
-            <th>[% c.loc("Client") %]</th>
-            <th>[% c.loc("Created") %]</th>
-            <th>[% c.loc("Printer") %]</th>
-            <th>[% c.loc("Cost") %]</th>
-            <th>&nbsp;</th>
-            <th>&nbsp;</th>
+            <th data-priority="0">&nbsp;</th>
+            <th data-priority="5">[% c.loc("Type") %]</th>
+            <th data-priority="2">[% c.loc("Status") %]</th>
+            <th data-priority="3">[% c.loc("Copies") %]</th>
+            <th data-priority="2">[% c.loc("Pages") %]</th>
+            <th data-priority="4">[% c.loc("Client") %]</th>
+            <th data-priority="3">[% c.loc("Created") %]</th>
+            <th data-priority="1">[% c.loc("Filename") %]</th>
+            <th data-priority="2">[% c.loc("Printer") %]</th>
+            <th data-priority="1">[% c.loc("Cost") %]</th>
+            <th data-priority="1">&nbsp;</th>
             </thead>
         </table>
     </div>
 </div>
 
 
-<script>
-    // Sets the filename in the bootstrapped file uploader once a file has been selected
+<script type="text/javascript">
+$(document).ready(function() {
+    // Update filename display in custom file input
     $(".custom-file-input").on("change", function() {
-      var fileName = $(this).val().split("\\").pop();
-      $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        const fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
     });
 
-    const formatter = new Intl.NumberFormat('en-US', { //FIXME: locale and currency should be configurable system settings
-      style: 'currency',
-      currency: 'USD',
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
     });
 
-
-    // Initalize the Print table as a datatable
     let user_funds = 0;
-    pTable = $('#print-table').DataTable({
+
+    async function fetchUserFundsAndUpdateUI() {
+        try {
+            const res = await fetch("/public/api/user/funds");
+            const data = await res.json();
+            user_funds = data.funds;
+            $('#user-funds').html(formatter.format(user_funds));
+        } catch (err) {
+            console.error("Error fetching user funds:", err);
+        }
+    }
+
+    fetchUserFundsAndUpdateUI();
+    setInterval(fetchUserFundsAndUpdateUI, 60000);
+
+    const pTable = $('#print-table').DataTable({
         [% IF !c.language.match('en') %]
-        "oLanguage": {
-            "sUrl": "https://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/[% c.installed_languages.${c.language} %].json"
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/[% c.installed_languages.${c.language} %].json"
         },
         [% END %]
-        "bProcessing": true, // Indicate when the table is processing data
-        "bServerSide": true, // Indicate that the datatable gets data from an HTTP GET request
-        "sAjaxSource": "[% c.uri_for('/public/api/datatables/prints') %]", // The actual URL to call for data
-        "fnInitComplete": function (oSettings, json) {
-            setInterval(() => {
-                $("#print-table").dataTable().fnDraw(true);
-            }, 10000);
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        ajax: {
+            url: '[% c.uri_for('/public/api/datatables/prints') %]',
         },
-        columnDefs: [
-            {
-                targets: [8],
-                className: "[% IF public_print_release == 'disabled' %]display-none[% END %]"
-            },
+        columns: [
+          { // more details control
+              data: null,
+              title: '&nbsp;', 
+              orderable: false, 
+              searchable: false,
+              defaultContent: '&nbsp;'
+          },
+          { // Print Type
+              data: '0',
+              render: function(data,type,row) {
+                  return data.replace("PrintManager", `[% c.loc("Print Manager") %]`);
+              }
+          },
+          { // Status
+              data: '1',
+              render: function(data,type,row) {
+                  return data.replace("In_progress", `[% c.loc("In progress") %]`);
+              }
+          },
+          { data: '2' }, // Copies
+          { data: '3' }, // Pages
+          { // Client
+              data: '4',
+              render: function(data,type,row) {
+                  return data.replace("__PRINT_FROM_WEB__", `<em>[% c.loc("Uploaded from Web") %]</em>`)
+              }
+          },
+          { // Created
+              data: '5',
+              render: function(data,type,row) {
+                  return data.replace("T", " ");
+              }
+          },
+          { data: 'filename' }, // Filename
+          { // Printer
+              data: 'printer_costs',
+              render: function(data,type,row) {
+                  const print_job_id = row["print_job_id"];
+                  const not_held = row["status"] !== "Held";
+                  const sel_id = "printer-select-" + print_job_id;
+
+                  const printer_costs = JSON.parse(row["printer_costs"]);
+
+                  let html = `<select id="${sel_id}" ${not_held ? "disabled" : ""}>`;
+
+                  for (let pc of printer_costs) {
+                      const selected = pc.selected == 1 ? "selected" : "";
+                      html += `<option value="${pc.id}" data-cost="${pc.cost}" ${selected}>${pc.name}</option>`;
+                  }
+
+                  html += `</select>`;
+                  return html;
+              }
+          },
+          { // Cost
+              data: '7',
+              render: function(data,type,row) {
+                  return "<span id='" + row.print_job_id + "-cost'>" + formatter.format(data) + "</span>";
+              } 
+          },
+          { // Actions
+              data: null,
+              title: 'Actions', 
+              orderable: false, 
+              searchable: false,
+              render: function(data,type,row) {
+                  const print_job_id = row["print_job_id"];
+                  const not_held = row["status"] !== "Held";
+
+                  let html = "<div class='btn-group' role='group' aria-label='Print actions'>";
+                  [% IF public_print_release != "disabled" %]
+                  if (not_held || user_funds < row["7"]) {
+                    html += `<a id="print-btn-${print_job_id}" data-jobid="${print_job_id}" class="btn btn-primary print-release disabled" disabled aria-disabled="true" href="#" role="button"><i class="fa fa-print"></i> Print</a>`;
+                  } else {
+                    html += `<a id="print-btn-${print_job_id}" data-jobid="${print_job_id}" class="btn btn-primary print-release" href="#" role="button"><i class="fa fa-print"></i> Print</a>`;
+                  }
+                  [% END %]
+
+                  if (not_held) {
+                     html += `<a id="cancel-btn-${print_job_id}" class="btn btn-danger print-cancel disabled" disabled aria-disabled="true" href="#" role="button"><i class="fa fa-ban"></i> Cancel</a>`;
+                  } else {
+                     html += `<a id="cancel-btn-${print_job_id}" class="btn btn-danger print-cancel" data-jobid="${print_job_id}" href="#" role="button"><i class="fa fa-ban"></i> Cancel</a>`;
+                  }
+                  html += '</div>'
+                  return html;
+              }
+          }
         ],
-        "order": [
-            [6, "desc"]
-        ],
-        "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            let print_job_id = aData["print_job_id"];
-            let not_held = aData['status'] !='Held';
+        initComplete: function () {
+            setInterval(() => {
+                $('#print-table').DataTable().draw(false);
+            }, 30000);
+        },
+        order: [[5, "desc"]]
+    });
 
-            // Update user funds
-            // TODO: await this instead of async = false - https://petetasker.com/using-async-await-jquerys-ajax
-            $.ajax({
-                dataType: "json",
-                url: "/public/api/user/funds",
-                async: false,
-                success: function(data) {
-                    user_funds = data.funds;
-                    $('#user-funds').html( formatter.format( user_funds ) );
-                }
-            });
+    // Print handler
+    $("#print-table").on("click", "a.print-release", async function(e) {
+        e.preventDefault();
+        const job_id = $(this).data("jobid");
+        const printer = printerSelections[job_id] || $("#printer-select-" + job_id).val();
 
-            // Type column
-            $('td:eq(0)', nRow).html(aData[0].replace('PrintManager', `[% c.loc("Print Manager") %]`));
-
-            // Status column
-            $('td:eq(1)', nRow).html(aData[1].replace('In_progress', `[% c.loc("In progress") %]`));
-
-            // Client column
-            $('td:eq(4)', nRow).html(aData[4].replace('__PRINT_FROM_WEB__', `<em>[% c.loc("Uploaded from Web") %]</em>`));
-
-            // DateTime created
-            $('td:eq(5)', nRow).html(aData[5].replace('T', ' '));
-
-            // Generate the printer select pulldown, retain the current selected printer if there is one
-            // otherwise default to the printer set for the print job itself
-            let sel = document.createElement("select");
-            let sel_id = "printer-select-" + print_job_id;
-            sel.id = sel_id;
-            let existing_sel = $("#" + sel_id);
-            if ( aData['printer_costs'] ) {
-                let printer_costs = JSON.parse(aData["printer_costs"]);
-                for (i = 0; i < printer_costs.length; i++) {
-                    let pc = printer_costs[i];
-                    let opt = document.createElement("option");
-                    opt.value = pc.id;
-                    opt.text = pc.name;
-                    opt.dataset.cost = pc.cost;
-                    if ( existing_sel.length && aData["status"] == "Held" ) {
-                        if ( pc.id == existing_sel.val() ) {
-                            opt.setAttribute("selected", "selected");
-                        }
-                    }
-                    else if ( pc.selected ) {
-                        opt.setAttribute("selected", "selected");
-                    }
-
-                    sel.add(opt, null);
-                }
-
-                if ( not_held ) {
-                    sel.setAttribute("disabled", "disabled");
-                }
-
-                // On change update the cost column and disable/enable print button
-                sel.addEventListener(
-                    'change',
-                    function() {
-                        let cost = this.options[this.selectedIndex].dataset.cost;
-                        $('td:eq(7)', nRow).html( formatter.format(cost) );
-
-                        let btn = $("#print-btn-" + print_job_id);
-                        if ( cost > user_funds ) {
-                            btn.prop("disabled",true);
-                            btn.addClass("disabled");
-                        } else {
-                            btn.removeAttr('disabled');
-                            btn.removeClass("disabled");
-                        }
-                    }
-                );
-                $('td:eq(6)', nRow).append( sel );
-
-            }
-
-            // Cost
-            let cost = sel.options[sel.selectedIndex].dataset.cost;
-            $('td:eq(7)', nRow).html( formatter.format(cost) );
-
-            // Print & Cancel buttons
-            let insufficient_funds = cost > user_funds;
-            let html;
-            [% IF public_print_release != "disabled" %]
-                if ( not_held || insufficient_funds ) {
-                    html = `<a id="print-btn-${ print_job_id }" data-jobid="${ print_job_id }" class="btn btn-primary print-release disabled" disabled="disabled" aria-disabled="true" href="#" role="button"><i class="fa fa-print" /> Print</a>`;
-                } else {
-                    html = `<a id="print-btn-${ print_job_id }" data-jobid="${ print_job_id }" class="btn btn-primary print-release" href="#" role="button"><i class="fa fa-print" /> Print</a>`;
-                }
-            [% ELSE %]
-                html = "&nbsp;";
-            [% END %]
-            $('td:eq(8)', nRow).html(html);
-
-            if ( not_held ) {
-                html = `<a id="cancel-btn-${ print_job_id }" class="btn btn-primary print-cancel disabled" disabled="disbled" aria-disabled="true" href="#" role="button"><i class="fa fa-cancel" /> Cancel</a>`;
-            } else {
-                html = `<a id="cancel-btn-${ print_job_id }" class="btn btn-primary print-cancel" disabled data-jobid="${ aData['print_job_id']}" href="#" role="button"><i class="fa fa-cancel" /> Cancel</a>`;
-            }
-            $('td:eq(9)', nRow).html(html);
+        const confirmed = confirm("[% c.loc('Job will be released to the printer immediately, are you sure you want to do this?') %]");
+        if (confirmed) {
+            const res = await fetch(`/public/api/user/release_print_job?id=${job_id}&printer=${printer}`);
+            const data = await res.json();
+            alert(data.success ? "[% c.loc('Print job released for printing!') %]" : data.error);
+            $("#print-table").DataTable().draw(false);
         }
     });
 
-    $( "#print-table" ).on( "click", "a.print-release", function(e) {
+    // Cancel handler
+    $("#print-table").on("click", "a.print-cancel", async function(e) {
         e.preventDefault();
-        const job_id = $(this).data('jobid');
-        const printer = $("#printer-select-" + job_id).val();
-
-        const confirmed = confirm("[% c.loc('Job will be released to the printer immediately, are you sure you want to do this?') %]");
-        if ( confirmed ) {
-            $.getJSON( "/public/api/user/release_print_job", { id: job_id, printer: printer }, function( data ) {
-                if ( data.success ) {
-                    alert('[% c.loc("Print job released for printing!") %]');
-                } else {
-                    alert( data.error );
-                }
-
-                $("#print-table").dataTable().fnDraw(true);
-            });
-        };
-    });
-
-    $( "#print-table" ).on( "click", "a.print-cancel", function(e) {
-        e.preventDefault();
-        const job_id = $(this).data('jobid');
+        const job_id = $(this).data("jobid");
 
         const confirmed = confirm("[% c.loc('Are you sure you want to cancel this print job?') %]");
-        if ( confirmed ) {
-            $.getJSON( "/public/api/user/cancel_print_job", { id: job_id }, function( data ) {
-                if ( data.success ) {
-                    alert('[% c.loc("Print job canceled!") %]');
-                } else {
-                    alert( data.error );
-                }
-
-                $("#print-table").dataTable().fnDraw(true);
-            });
-        };
+        if (confirmed) {
+            const res = await fetch(`/public/api/user/cancel_print_job?id=${job_id}`);
+            const data = await res.json();
+            alert(data.success ? "[% c.loc('Print job canceled!') %]" : data.error);
+            $("#print-table").DataTable().draw(false);
+        }
     });
+
+
+    // Change cost on change of printer
+    const printerSelections = {};
+    $('#print-table').on('change', 'select[id^="printer-select-"]', function() {
+        const print_job_id = this.id.replace("printer-select-", "");
+        const cost = parseFloat(this.selectedOptions[0].dataset.cost);
+
+        $('#'+print_job_id+'-cost').html(formatter.format(cost));
+        printerSelections[print_job_id] = this.value;
+
+        const btn = $("#print-btn-" + print_job_id);
+
+        if (cost > user_funds) {
+            btn.prop("disabled", true).addClass("disabled");
+        } else {
+            btn.prop("disabled", false).removeClass("disabled");
+        }
+    });
+
+});
 </script>

@@ -5,12 +5,12 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-use Libki::SIP qw( authenticate_via_sip );
-use Libki::LDAP qw( authenticate_via_ldap );
-use Libki::Hours qw( minutes_until_closing );
-use Libki::Utils::Printing qw( create_print_job_and_file );
-use Libki::Utils::User qw( create_guest );
-use Libki::Clients qw( get_wol_mac_addresses );
+use Libki::SIP;
+use Libki::LDAP;
+use Libki::Hours;
+use Libki::Utils::Printing;
+use Libki::Utils::User;
+use Libki::Clients;
 
 use DateTime::Format::MySQL;
 use DateTime;
@@ -489,6 +489,10 @@ sub index : Path : Args(0) {
             }
         }
         elsif ( $action eq 'get_user_data' ) {
+            unless ( $user ) {
+                $c->response->body('User not found');
+                $c->response->status(404);
+            }
 
             my $status;
             if ( $user->session ) {
@@ -514,6 +518,11 @@ sub index : Path : Args(0) {
             $user->messages()->delete();
         }
         elsif ( $action eq 'logout' ) {
+            unless ( $user ) {
+                $c->response->body('User not found');
+                $c->response->status(404);
+            }
+
             my $session    = $user->session;
 
             if ($session) {
