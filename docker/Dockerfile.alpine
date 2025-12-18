@@ -16,7 +16,7 @@
 
 # Start with the previous image for speed,
 # it has all the dependencies installed already
-FROM alpine:latest
+FROM alpine:3.22
 
 MAINTAINER Kyle M Hall <kyle@kylehall.info>
 
@@ -31,11 +31,13 @@ RUN apk add --no-cache \
         imagemagick \
         imagemagick-dev \
         imagemagick-perlmagick \
-        mysql-client \
+        mariadb-client \
+        mariadb-connector-c \
+        openssl \
         perl-app-cpanminus \
         perl-dbd-mysql \
         perl-dev \
-        perl-exporter \
+        perl-exporter-tiny \
         perl-getopt-long \
         perl-html-parser \
         perl-http-parser-xs \
